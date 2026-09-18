@@ -1,0 +1,29 @@
+spack:
+  specs:
+  - cmake
+  - openmpi
+  - cuda
+  - cudnn
+  - liburing
+  - python
+  - py-uv
+  view: true
+  concretizer:
+    unify: true
+    reuse: true
+  packages:
+    cmake:
+      buildable: false
+      require: "@3.22:3.31"
+    gcc:
+      buildable: false
+      require: '@13:'
+    llvm:
+      buildable: false
+    mpi:
+      buildable: false
+    cuda:
+      buildable: false
+      require: "@13"
+    python:
+      require: "@3.14"

@@ -1,0 +1,18 @@
+---
+Language: Cpp
+BasedOnStyle: Google
+
+# Core Layout
+ColumnLimit: 100
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+
+# Pointers and Alignment
+PointerAlignment: Left
+
+# Formatting Details
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: Never
+FixNamespaceComments: true
+SortIncludes: true

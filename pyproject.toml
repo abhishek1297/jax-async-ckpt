@@ -1,0 +1,63 @@
+[build-system]
+requires = ["scikit-build-core>1", "nanobind>2"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "jax-async-ckpt"
+version = "0.0.1"
+description = "Minimal JAX Async Checkpoint Engine"
+requires-python = ">=3.10"
+dependencies = [
+    "jax[cuda13]", # https://docs.jax.dev/en/latest/installation.html#pip-installation-nvidia-gpu-cuda-installed-locally-harder
+    "nanobind",
+    "mpi4py>=4",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=7.0",
+    "ruff>=0.4.0",
+    "numpy>2",
+]
+build = [
+    "scikit-build-core>1",
+    "nanobind>2",
+    "setuptools",
+]
+
+[tool.scikit-build]
+build.verbose = true
+cmake.build-type = "Release"
+sdist.exclude = [
+  ".github",
+  ".gitignore",
+  "assets",
+  ".uv",
+  "venv",
+  ".venv",
+  "build",
+  "dist",
+  "jax-trace*",
+  "bench_run*",
+  "*.bin",
+  "*.pb.gz",
+  "docs",
+  "tests",
+  "benchmarks",
+  ".local_hpc_stack",
+  "justfile",
+  "README.md"
+  "uv.lock",
+  ".clang-format"
+]
+
+[[tool.scikit-build.generate]]
+path = "jax_async_ckpt/_version.py"
+template = 'version = "${version}"'
+
+[tool.uv]
+default-groups = ["dev", "build"]
+no-build-isolation-package = ["jax-async-ckpt"]
+
+[tool.uv.pip]
+no-binary = ["mpi4py"]
