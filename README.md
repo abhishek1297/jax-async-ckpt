@@ -68,7 +68,7 @@ just build
 just test
 ```
 
-### Benchmark against synchronous checkpointing over 2 MPI ranks
+### Benchmark against Synchronous Checkpointing
 
 ```bash
 uv run python3 benchmarks/pipeline.py \
