@@ -46,7 +46,7 @@ sdist.exclude = [
   "benchmarks",
   ".local_hpc_stack",
   "justfile",
-  "README.md"
+  "README.md",
   "uv.lock",
   ".clang-format"
 ]
