@@ -34,7 +34,7 @@ TBD
 
 ### Environment Setup
 
-Ensure your local HPC CUDA and MPI toolchains are active, then initialize the locked development environment:
+Ensure your local HPC (CUDA and MPI) toolchain is active, then initialize the locked development environment:
 
 To link against locally exposed CUDA, follow [JAX documentation](https://docs.jax.dev/en/latest/installation.html#pip-installation-nvidia-gpu-cuda-installed-locally-harder).
 
