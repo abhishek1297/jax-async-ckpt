@@ -27,31 +27,6 @@ Traditional checkpointing blocks main compute execution threads while state tens
 ## 🏗️ Execution Flow
 
 ```mermaid
-graph LR
-    subgraph Python ["1. Python / JAX Runtime"]
-        A["jax_async_ckpt.save_pytree_async(params, path)"] --> B["Flatten PyTree & Extract CUDA Pointers"]
-    end
-
-    subgraph CXX ["2. C++ CUDA Offloader Engine"]
-        B --> C["Record cudaEvent_t on Compute Stream"]
-        C --> D["cudaStreamWaitEvent on cudaStreamNonBlocking"]
-        D --> E["Async MemcpyDtoH: VRAM ──► Pinned Host Buffer"]
-        E --> F["cudaStreamAddCallback: Release GPU Lock for Step N+1"]
-    end
-
-    subgraph Uring ["3. Linux Kernel io_uring Subsystem"]
-        F --> G["Prepare io_uring_prep_writev() Descriptors"]
-        G --> H["Submit Writes to Submission Queue (SQ)"]
-        H --> I["Kernel Async Write: Pinned Buffer ──► Disk"]
-        I --> J["Poll CQ & Reclaim Host Buffer Region"]
-    end
-
-    style A fill:#2b4c7e,stroke:#4a7bb0,color:#fff
-    style CXX fill:#1e3a3a,stroke:#2a5c5c,color:#fff
-    style Uring fill:#3a2e1e,stroke:#5c4a2a,color:#fff
-```
-
-```mermaid
 sequenceDiagram
     autonumber
     participant JAX as JAX Compute Stream

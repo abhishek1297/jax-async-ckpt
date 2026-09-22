@@ -4,7 +4,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "jax-async-ckpt"
-version = "0.0.1"
+version = "0.0.1.dev0"
 description = "Minimal JAX Async Checkpoint Engine"
 requires-python = ">=3.10"
 dependencies = [
@@ -40,6 +40,7 @@ sdist.exclude = [
   "jax-trace*",
   "bench_run*",
   "*.bin",
+  "*.ipynb",
   "*.pb.gz",
   "docs",
   "tests",
@@ -50,10 +51,6 @@ sdist.exclude = [
   "uv.lock",
   ".clang-format"
 ]
-
-[[tool.scikit-build.generate]]
-path = "jax_async_ckpt/_version.py"
-template = 'version = "${version}"'
 
 [tool.uv]
 default-groups = ["dev", "build"]
