@@ -24,9 +24,59 @@ Traditional checkpointing blocks main compute execution threads while state tens
 
 ---
 
-## 🏗️ Stack Architecture
+## 🏗️ Execution Flow
 
-TBD
+```mermaid
+graph LR
+    subgraph Python ["1. Python / JAX Runtime"]
+        A["jax_async_ckpt.save_pytree_async(params, path)"] --> B["Flatten PyTree & Extract CUDA Pointers"]
+    end
+
+    subgraph CXX ["2. C++ CUDA Offloader Engine"]
+        B --> C["Record cudaEvent_t on Compute Stream"]
+        C --> D["cudaStreamWaitEvent on cudaStreamNonBlocking"]
+        D --> E["Async MemcpyDtoH: VRAM ──► Pinned Host Buffer"]
+        E --> F["cudaStreamAddCallback: Release GPU Lock for Step N+1"]
+    end
+
+    subgraph Uring ["3. Linux Kernel io_uring Subsystem"]
+        F --> G["Prepare io_uring_prep_writev() Descriptors"]
+        G --> H["Submit Writes to Submission Queue (SQ)"]
+        H --> I["Kernel Async Write: Pinned Buffer ──► Disk"]
+        I --> J["Poll CQ & Reclaim Host Buffer Region"]
+    end
+
+    style A fill:#2b4c7e,stroke:#4a7bb0,color:#fff
+    style CXX fill:#1e3a3a,stroke:#2a5c5c,color:#fff
+    style Uring fill:#3a2e1e,stroke:#5c4a2a,color:#fff
+```
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant JAX as JAX Compute Stream
+    participant CXX as CUDA Async Stream
+    participant Ring as Pinned Host Buffer
+    participant Uring as Linux io_uring
+
+    Note over JAX: Step N Compute Finishes
+    JAX->>CXX: cudaEventRecord()
+    
+    par Compute & Transfer Overlap
+        Note over JAX: Step N+1 Compute Starts Immediately
+        JAX->>JAX: Execute Step N+1 GPU Kernels
+    and Background DtoH
+        CXX->>CXX: cudaStreamWaitEvent()
+        CXX->>Ring: cudaMemcpyAsync (VRAM ──► Pinned)
+        Ring->>CXX: DtoH Complete Callback
+    end
+
+    par Compute & Disk I/O Overlap
+        JAX->>JAX: Step N+1 Finishes
+        Ring->>Uring: io_uring_prep_writev()
+        Uring->>Uring: Kernel Async Write to Disk
+    end
+```
 
 ---
 
@@ -34,7 +84,19 @@ TBD
 
 ### Environment Setup
 
-Ensure your local HPC (CUDA and MPI) toolchain is active, then initialize the locked development environment:
+Before building `jax-async-ckpt` from source, ensure your host system or HPC cluster environment meets the core C++20, CUDA 13, and system library requirements.
+
+#### System Dependencies
+
+Building the non-blocking C++ engine requires the following base environment specs:
+
+* **Compiler:** `GCC >= 13` (required for modern C++20 features)
+* **CUDA Toolkit:** `CUDA >= 12`
+* **Linux Async I/O:** `liburing` (kernel development headers and userland libraries)
+* **MPI:** `OpenMPI` (or an equivalent MPI implementation)
+* **Build System:** `CMake >= 3.22`
+
+#### Install the package via pip
 
 To link against locally exposed CUDA, follow [JAX documentation](https://docs.jax.dev/en/latest/installation.html#pip-installation-nvidia-gpu-cuda-installed-locally-harder).
 
